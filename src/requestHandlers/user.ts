@@ -56,15 +56,25 @@ export const signin = async (req: Request, res: Response) => {
   }
 };
 
+export const getConnectedUser = async (req: AuthRequest, res: Response) => {
+  console.log("getConnectedUser", req.auth);
+  if (req.auth) {
+    const { passwordHash, ...userWithoutPassword } = req.auth;
+    res.json(userWithoutPassword);
+    res.status(200);
+  } else {
+    throw new NotFoundError("User not found");
+  }
+};
+
 export const auth_client = [
   expressjwt({
     secret: process.env.JWT_SECRET as string,
     algorithms: ["HS256"],
   }),
   async (req: AuthRequest, res: Response, next: NextFunction) => {
-    console.log("auth_client", req.auth);
     const user = await prisma.user.findUnique({
-      where: { id: Number(req.auth?.id) },
+      where: { id: Number(req.auth) },
     });
     if (user) {
       req.auth = user;

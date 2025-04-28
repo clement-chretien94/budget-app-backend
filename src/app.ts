@@ -24,6 +24,8 @@ app.get("/", (req: Request, res: Response) => {
 app.post("/signup", user.signup);
 app.post("/signin", user.signin);
 
+app.get("/user", user.auth_client, user.getConnectedUser);
+
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof StructError) {
     err.status = 400;

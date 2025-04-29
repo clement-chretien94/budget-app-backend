@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import * as user from "./requestHandlers/user";
+import * as budget from "./requestHandlers/budget";
 import cors from "cors";
 import { HttpError } from "./error";
 import { StructError } from "superstruct";
@@ -21,10 +22,16 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello World!");
 });
 
+// User routes
 app.post("/signup", user.signup);
 app.post("/signin", user.signin);
 
 app.get("/user", user.auth_client, user.getConnectedUser);
+
+// Budget routes
+app.route("/budgets").all(user.auth_client).post(budget.createBudget);
+
+app.get("/budgets/current", user.auth_client, budget.getCurrentBudget);
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof StructError) {

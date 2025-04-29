@@ -6,13 +6,14 @@ const prisma = new PrismaClient();
 const categories = Array.from({ length: 2 }, () => ({
   name: faker.commerce.department(),
   emoji: faker.internet.emoji(),
+  color: faker.color.rgb(),
   limitAmount: parseFloat(faker.finance.amount({ max: 500 })),
 }));
 
 const users = Array.from({ length: 2 }, () => ({
   username: faker.person.fullName(),
   email: faker.internet.email(),
-  passwordHash: faker.internet.password(),
+  passwordHash: "12345678",
   categories: {
     create: categories,
   },

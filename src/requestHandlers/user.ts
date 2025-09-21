@@ -50,6 +50,7 @@ export const signin = async (req: Request, res: Response) => {
     const jwt = sign(user.id.toString(), process.env.JWT_SECRET);
     const { passwordHash, ...userWithoutPassword } = user;
     res.json({ user: userWithoutPassword, jwt });
+    console.log("JWT:", jwt);
     res.status(201);
   } else {
     throw new NotFoundError("Invalid username or password");

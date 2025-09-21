@@ -3,28 +3,27 @@ import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
-const categories = Array.from({ length: 2 }, () => ({
-  name: faker.commerce.department(),
-  emoji: faker.internet.emoji(),
-  color: faker.color.rgb(),
-  limitAmount: parseFloat(faker.finance.amount({ max: 500 })),
-}));
-
-const users = Array.from({ length: 2 }, () => ({
-  username: faker.person.fullName(),
-  email: faker.internet.email(),
-  passwordHash: "12345678",
-  categories: {
-    create: categories,
-  },
-}));
-
 async function main() {
-  users.forEach(async (user) => {
-    await prisma.user.create({
-      data: user,
+  // Create 2 users
+  for (let i = 0; i < 2; i++) {
+    const user = await prisma.user.create({
+      data: {
+        username: faker.person.fullName(),
+        email: faker.internet.email(),
+        passwordHash: faker.internet.password(),
+      },
     });
-  });
+
+    // Create 1 budgets for each user
+    await prisma.budget.create({
+      data: {
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+        stableIncome: faker.number.int({ min: 1000, max: 5000 }),
+        userId: user.id,
+      },
+    });
+  }
 }
 
 main()

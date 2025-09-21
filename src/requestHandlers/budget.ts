@@ -3,9 +3,12 @@ import { Request, Response } from "express";
 import { NotFoundError, BadDataError } from "../error";
 import { Request as AuthRequest } from "express-jwt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { assert } from "superstruct";
+import { BudgetCreationData } from "../validation/budget";
 
 export const createBudget = async (req: AuthRequest, res: Response) => {
   console.log("createBudget", req.body, req.auth);
+  assert(req.body, BudgetCreationData);
   if (req.auth) {
     let budget;
     try {
@@ -13,7 +16,7 @@ export const createBudget = async (req: AuthRequest, res: Response) => {
         data: {
           month: new Date().getMonth() + 1,
           year: new Date().getFullYear(),
-          stableIncome: req.body.stable_income,
+          stableIncome: req.body.stableIncome,
           userId: req.auth.id,
         },
       });
@@ -46,7 +49,8 @@ export const getCurrentBudget = async (req: AuthRequest, res: Response) => {
     });
 
     if (!budget) {
-      throw new NotFoundError("Budget not found for this month");
+      res.json(null);
+      return;
     }
 
     res.json(budget);

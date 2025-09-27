@@ -41,8 +41,11 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getCategories = async (req: AuthRequest, res: Response) => {
-  console.log("getCategories", req.auth);
+export const getCategoriesByBudget = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  console.log("getCategoriesByBudget", req.auth);
   if (req.auth) {
     const categories = await prisma.category.findMany({
       where: {
@@ -79,6 +82,22 @@ export const getCategories = async (req: AuthRequest, res: Response) => {
     });
 
     res.json(categoriesWithLimit);
+  } else {
+    throw new NotFoundError("User not found");
+  }
+};
+
+export const getCategories = async (req: AuthRequest, res: Response) => {
+  console.log("getCategories", req.auth);
+  if (req.auth) {
+    const categories = await prisma.category.findMany();
+
+    if (!categories) {
+      res.json(null);
+      return;
+    }
+
+    res.json(categories);
   } else {
     throw new NotFoundError("User not found");
   }

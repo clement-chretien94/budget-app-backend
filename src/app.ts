@@ -52,20 +52,27 @@ app.route("/budgets").all(user.auth_client).post(budget.createBudget);
 app.get("/budgets/current", user.auth_client, budget.getCurrentBudget);
 
 // Category routes
+app.route("/categories").all(user.auth_client).get(category.getCategories);
+
 app
   .route("/budgets/:budget_id/categories")
   .all(user.auth_client)
   .all(validateParams)
-  .get(category.getCategories)
+  .get(category.getCategoriesByBudget)
   .post(category.createCategory);
 
 // Transaction routes
 app
+  .route("/transactions")
+  .all(user.auth_client)
+  .get(transaction.getTransactions)
+  .post(transaction.createTransaction);
+
+app
   .route("/budgets/:budget_id/transactions")
   .all(user.auth_client)
   .all(validateParams)
-  .get(transaction.getTransactions)
-  .post(transaction.createTransaction);
+  .get(transaction.getTransactionsByBudget);
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof StructError) {

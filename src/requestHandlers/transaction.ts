@@ -4,7 +4,10 @@ import { NotFoundError, BadDataError } from "../error";
 import { Request as AuthRequest } from "express-jwt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { assert } from "superstruct";
-import { TransactionCreationData } from "../validation/transaction";
+import {
+  TransactionCreationData,
+  GetTransactionsQueryParamsData,
+} from "../validation/transaction";
 
 export const createTransaction = async (req: AuthRequest, res: Response) => {
   console.log("createTransaction", req.body, req.auth);
@@ -14,7 +17,34 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
   }
 
   assert(req.body, TransactionCreationData);
+
+  // Determine the budgetId base on req.body.date (month and year)
+  const month = req.body.date.getMonth() + 1;
+  const year = req.body.date.getFullYear();
+
   if (req.auth) {
+    let budgetId = (
+      await prisma.budget.findFirst({
+        where: {
+          month,
+          year,
+        },
+      })
+    )?.id;
+
+    if (!budgetId) {
+      // Si le budget n'existe pas, on le crée avec un stableIncome arbitraire de 1500 -- A MODIFIER PLUS TARD
+      const newBudget = await prisma.budget.create({
+        data: {
+          month,
+          year,
+          stableIncome: 1500,
+          user: { connect: { id: req.auth.id } },
+        },
+      });
+      budgetId = newBudget.id;
+    }
+
     let transaction;
     try {
       const data: any = {
@@ -22,19 +52,37 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         type: req.body.type,
         amount: req.body.amount,
         date: req.body.date,
-        budget: { connect: { id: Number(req.params.budget_id) } },
+        budget: { connect: { id: budgetId } },
       };
 
-      if (req.body.categoryId) {
-        data.budgetCategory = {
-          connect: {
-            budgetId_categoryId: {
-              budgetId: Number(req.params.budget_id),
-              categoryId: Number(req.body.categoryId),
-            },
+      // Si la categorie n'est pas dejà associée au budget, on l'associe avec un limitAmount arbitraire de 50 -- A MODIFIER PLUS TARD
+      const budgetOnCategory = await prisma.budgetOnCategory.findUnique({
+        where: {
+          budgetId_categoryId: {
+            budgetId: budgetId,
+            categoryId: Number(req.body.categoryId),
           },
-        };
+        },
+      });
+
+      if (!budgetOnCategory) {
+        await prisma.budgetOnCategory.create({
+          data: {
+            budgetId: budgetId,
+            categoryId: Number(req.body.categoryId),
+            limitAmount: 50,
+          },
+        });
       }
+
+      data.budgetCategory = {
+        connect: {
+          budgetId_categoryId: {
+            budgetId: budgetId,
+            categoryId: Number(req.body.categoryId),
+          },
+        },
+      };
 
       transaction = await prisma.transaction.create({ data });
     } catch (error) {
@@ -55,10 +103,15 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getTransactions = async (req: AuthRequest, res: Response) => {
-  console.log("getTransactions", req.auth);
+export const getTransactionsByBudget = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  console.log("getTransactionsByBudget", req.auth);
+  assert(req.query, GetTransactionsQueryParamsData);
   if (req.auth) {
     const transactions = await prisma.transaction.findMany({
+      take: Number(req.query.take) || undefined,
       where: {
         budget: {
           userId: req.auth.id,
@@ -67,14 +120,18 @@ export const getTransactions = async (req: AuthRequest, res: Response) => {
       },
       include: {
         budgetCategory: {
-          where: {
-            budgetId: Number(req.params.budget_id),
-          },
           select: {
             categoryId: true,
+            category: {
+              select: {
+                name: true,
+                emoji: true,
+              },
+            },
           },
         },
       },
+      orderBy: { date: "desc" },
     });
 
     if (!transactions) {
@@ -86,6 +143,52 @@ export const getTransactions = async (req: AuthRequest, res: Response) => {
       return {
         ...transaction,
         categoryId: transaction.budgetCategory?.categoryId ?? null,
+        categoryName: transaction.budgetCategory?.category?.name ?? null,
+        categoryEmoji: transaction.budgetCategory?.category?.emoji ?? null,
+        budgetCategory: undefined,
+        budgetCategoryId: undefined,
+      };
+    });
+
+    res.json(transactionsFormated);
+  } else {
+    throw new NotFoundError("User not found");
+  }
+};
+
+export const getTransactions = async (req: AuthRequest, res: Response) => {
+  console.log("getTransactions", req.auth);
+  assert(req.query, GetTransactionsQueryParamsData);
+  if (req.auth) {
+    const transactions = await prisma.transaction.findMany({
+      take: Number(req.query.take) || undefined,
+      include: {
+        budgetCategory: {
+          select: {
+            categoryId: true,
+            category: {
+              select: {
+                name: true,
+                emoji: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { date: "desc" },
+    });
+
+    if (!transactions) {
+      res.json(null);
+      return;
+    }
+
+    const transactionsFormated = transactions.map((transaction) => {
+      return {
+        ...transaction,
+        categoryId: transaction.budgetCategory?.categoryId ?? null,
+        categoryName: transaction.budgetCategory?.category?.name ?? null,
+        categoryEmoji: transaction.budgetCategory?.category?.emoji ?? null,
         budgetCategory: undefined,
         budgetCategoryId: undefined,
       };

@@ -53,7 +53,25 @@ export const getCurrentBudget = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    res.json(budget);
+    // Add the totalBalance field
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        budgetId: budget.id,
+      },
+    });
+
+    const totalBalance =
+      budget.stableIncome +
+      transactions.reduce((acc, transaction) => {
+        return (
+          acc +
+          (transaction.type === "income"
+            ? transaction.amount
+            : -transaction.amount)
+        );
+      }, 0);
+
+    res.json({ ...budget, totalBalance });
   } else {
     throw new NotFoundError("User not found");
   }

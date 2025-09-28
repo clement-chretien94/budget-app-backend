@@ -2,6 +2,16 @@ import { object, refine, number, string } from "superstruct";
 import { isInt } from "validator";
 
 export const BudgetCreationData = object({
+  month: refine(
+    number(),
+    "int",
+    (value) => Number.isInteger(value) && value >= 1 && value <= 12
+  ),
+  year: refine(
+    number(),
+    "int",
+    (value) => Number.isInteger(value) && value >= 1970 && value <= 2100
+  ),
   stableIncome: refine(number(), "positive", (value) => value >= 0),
 });
 

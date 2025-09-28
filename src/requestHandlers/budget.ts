@@ -17,8 +17,8 @@ export const createBudget = async (req: AuthRequest, res: Response) => {
     try {
       budget = await prisma.budget.create({
         data: {
-          month: new Date().getMonth() + 1,
-          year: new Date().getFullYear(),
+          month: req.body.month,
+          year: req.body.year,
           stableIncome: req.body.stableIncome,
           userId: req.auth.id,
         },
@@ -33,7 +33,7 @@ export const createBudget = async (req: AuthRequest, res: Response) => {
       }
       throw error;
     }
-    res.json(budget);
+    res.json({ ...budget, totalBalance: budget.stableIncome });
     res.status(201);
   } else {
     throw new NotFoundError("User not found");

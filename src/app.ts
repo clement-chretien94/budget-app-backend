@@ -48,7 +48,11 @@ app.post("/signin", user.signin);
 app.get("/user", user.auth_client, user.getConnectedUser);
 
 // Budget routes
-app.route("/budgets").all(user.auth_client).post(budget.createBudget);
+app
+  .route("/budgets")
+  .all(user.auth_client)
+  .get(budget.getBudgetByDate)
+  .post(budget.createBudget);
 app.get("/budgets/current", user.auth_client, budget.getCurrentBudget);
 
 // Category routes

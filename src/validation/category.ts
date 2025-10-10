@@ -6,3 +6,8 @@ export const CategoryCreationData = object({
   color: size(string(), 1, 50),
   limitAmount: optional(refine(number(), "positive", (value) => value >= 0)),
 });
+
+export const AddCategoryToBudgetData = object({
+  categoryId: number(),
+  limitAmount: optional(refine(number(), "positive", (value) => value >= 0)),
+});

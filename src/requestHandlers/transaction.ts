@@ -33,16 +33,13 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
     )?.id;
 
     if (!budgetId) {
-      // Si le budget n'existe pas, on le crée avec un stableIncome arbitraire de 1500 -- A MODIFIER PLUS TARD
-      const newBudget = await prisma.budget.create({
-        data: {
-          month,
-          year,
-          stableIncome: 1500,
-          user: { connect: { id: req.auth.id } },
-        },
+      res.status(400).json({
+        error: "Budget not found for the given date",
+        code: "BUDGET_NOT_FOUND",
+        message:
+          "Vous devez d'abord créer le budget pour ce mois avant d'ajouter une transaction.",
       });
-      budgetId = newBudget.id;
+      return;
     }
 
     let transaction;
@@ -55,7 +52,6 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         budget: { connect: { id: budgetId } },
       };
 
-      // Si la categorie n'est pas dejà associée au budget, on l'associe avec un limitAmount arbitraire de 50 -- A MODIFIER PLUS TARD
       const budgetOnCategory = await prisma.budgetOnCategory.findUnique({
         where: {
           budgetId_categoryId: {
@@ -66,13 +62,13 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
       });
 
       if (!budgetOnCategory) {
-        await prisma.budgetOnCategory.create({
-          data: {
-            budgetId: budgetId,
-            categoryId: Number(req.body.categoryId),
-            limitAmount: 50,
-          },
+        res.status(400).json({
+          error: "Category not found in the budget for the given date",
+          code: "CATEGORY_NOT_FOUND_IN_BUDGET",
+          message:
+            "La catégorie spécifiée n'existe pas pour le budget de ce mois.",
         });
+        return;
       }
 
       data.budgetCategory = {

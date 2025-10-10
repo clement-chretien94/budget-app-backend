@@ -15,7 +15,11 @@ export const TransactionCreationData = object({
   type: enums(["expense", "income"]),
   amount: refine(number(), "positive", (value) => value >= 0),
   date: date(),
-  categoryId: refine(string(), "int", (value) => isInt(value)),
+  categoryId: refine(
+    number(),
+    "int",
+    (value) => Number.isInteger(value) && value > 0
+  ),
 });
 
 export const GetTransactionsQueryParamsData = object({

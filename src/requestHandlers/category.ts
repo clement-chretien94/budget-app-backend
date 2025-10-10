@@ -4,7 +4,10 @@ import { NotFoundError, BadDataError } from "../error";
 import { Request as AuthRequest } from "express-jwt";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { assert } from "superstruct";
-import { CategoryCreationData } from "../validation/category";
+import {
+  CategoryCreationData,
+  AddCategoryToBudgetData,
+} from "../validation/category";
 
 export const createCategory = async (req: AuthRequest, res: Response) => {
   console.log("createCategory", req.body, req.auth);
@@ -98,6 +101,38 @@ export const getCategories = async (req: AuthRequest, res: Response) => {
     }
 
     res.json(categories);
+  } else {
+    throw new NotFoundError("User not found");
+  }
+};
+
+export const addCategoryToBudget = async (req: AuthRequest, res: Response) => {
+  console.log("addCategoryToBudget", req.body, req.auth);
+  assert(req.body, AddCategoryToBudgetData);
+
+  if (req.auth) {
+    let category;
+    try {
+      category = await prisma.budgetOnCategory.create({
+        data: {
+          budget: { connect: { id: Number(req.params.budget_id) } },
+          category: { connect: { id: Number(req.body.categoryId) } },
+          limitAmount: req.body.limitAmount ?? null,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        console.log(error);
+        throw new BadDataError(`${error.meta?.target} not unique`);
+      }
+      throw error;
+    }
+    res.json(category);
+    res.status(201);
   } else {
     throw new NotFoundError("User not found");
   }

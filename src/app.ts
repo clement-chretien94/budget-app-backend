@@ -63,7 +63,7 @@ app
   .all(user.auth_client)
   .all(validateParams)
   .get(category.getCategoriesByBudget)
-  .post(category.createCategory);
+  .post(category.addCategoryToBudget);
 
 // Transaction routes
 app

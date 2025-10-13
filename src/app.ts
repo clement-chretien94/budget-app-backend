@@ -56,7 +56,11 @@ app
 app.get("/budgets/current", user.auth_client, budget.getCurrentBudget);
 
 // Category routes
-app.route("/categories").all(user.auth_client).get(category.getCategories);
+app
+  .route("/categories")
+  .all(user.auth_client)
+  .get(category.getCategories)
+  .post(category.createCategory);
 
 app
   .route("/budgets/:budget_id/categories")

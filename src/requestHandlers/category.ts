@@ -20,10 +20,6 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
           name: req.body.name,
           emoji: req.body.emoji,
           color: req.body.color,
-          limitAmount: req.body.limitAmount ?? null,
-          budget: {
-            connect: { id: Number(req.params.budget_id) },
-          },
         },
       });
     } catch (error) {

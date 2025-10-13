@@ -37,7 +37,7 @@ model Budget {
 
 model Category {
   id           Int        @id @default(autoincrement())
-  name         String
+  name         String    @unique
   emoji        String
   color        String
   createdAt    DateTime   @default(now())

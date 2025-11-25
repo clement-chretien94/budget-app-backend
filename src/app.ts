@@ -90,6 +90,10 @@ app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   res.status(err.status ?? 500).send(err.message);
 });
 
-app.listen(port, () => {
-  console.log(`App listening on port ${port}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`App listening on port ${port}`);
+  });
+}
+
+export default app;

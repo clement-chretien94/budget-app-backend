@@ -12,7 +12,7 @@ datasource db {
 
 model User {
   id           Int        @id @default(autoincrement())
-  username     String     @unique
+  fullName     String     @unique
   email        String     @unique
   passwordHash String
   createdAt    DateTime   @default(now())
@@ -24,7 +24,6 @@ model Budget {
   id            Int        @id @default(autoincrement())
   month         Int
   year          Int
-  stableIncome Float
   userId        Int
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
@@ -39,7 +38,6 @@ model Category {
   id           Int        @id @default(autoincrement())
   name         String    @unique
   emoji        String
-  color        String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   budgets      BudgetOnCategory[]

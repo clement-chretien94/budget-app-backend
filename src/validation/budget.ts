@@ -12,7 +12,6 @@ export const BudgetCreationData = object({
     "int",
     (value) => Number.isInteger(value) && value >= 1970 && value <= 2100
   ),
-  stableIncome: refine(number(), "positive", (value) => value >= 0),
 });
 
 export const BudgetByDateQueryParamsData = object({

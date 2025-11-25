@@ -15,13 +15,15 @@ export const TransactionCreationData = object({
   type: enums(["expense", "income"]),
   amount: refine(number(), "positive", (value) => value >= 0),
   date: date(),
-  categoryId: refine(
-    number(),
-    "int",
-    (value) => Number.isInteger(value) && value > 0
+  categoryId: optional(
+    refine(number(), "int", (value) => Number.isInteger(value) && value > 0)
   ),
 });
 
-export const GetTransactionsQueryParamsData = object({
+export const GetTransactionsByBudgetQueryParamsData = object({
   take: optional(refine(string(), "int", (value) => isInt(value))),
+});
+
+export const GetTransactionsQueryParamsData = object({
+  type: optional(enums(["expense", "income"])),
 });

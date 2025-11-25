@@ -10,7 +10,6 @@ import {
 } from "../validation/category";
 
 export const createCategory = async (req: AuthRequest, res: Response) => {
-  console.log("createCategory", req.body, req.auth);
   assert(req.body, CategoryCreationData);
   if (req.auth) {
     let category;
@@ -19,7 +18,6 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
         data: {
           name: req.body.name,
           emoji: req.body.emoji,
-          color: req.body.color,
         },
       });
     } catch (error) {
@@ -44,7 +42,6 @@ export const getCategoriesByBudget = async (
   req: AuthRequest,
   res: Response
 ) => {
-  console.log("getCategoriesByBudget", req.auth);
   if (req.auth) {
     const categories = await prisma.category.findMany({
       where: {
@@ -87,7 +84,6 @@ export const getCategoriesByBudget = async (
 };
 
 export const getCategories = async (req: AuthRequest, res: Response) => {
-  console.log("getCategories", req.auth);
   if (req.auth) {
     const categories = await prisma.category.findMany();
 
@@ -103,7 +99,6 @@ export const getCategories = async (req: AuthRequest, res: Response) => {
 };
 
 export const addCategoryToBudget = async (req: AuthRequest, res: Response) => {
-  console.log("addCategoryToBudget", req.body, req.auth);
   assert(req.body, AddCategoryToBudgetData);
 
   if (req.auth) {

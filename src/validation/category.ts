@@ -3,7 +3,6 @@ import { object, string, size, refine, optional, number } from "superstruct";
 export const CategoryCreationData = object({
   name: size(string(), 1, 50),
   emoji: size(string(), 1, 50),
-  color: size(string(), 1, 50),
 });
 
 export const AddCategoryToBudgetData = object({

@@ -12,12 +12,11 @@ import { expressjwt, Request as AuthRequest } from "express-jwt";
 const saltRounds = 12;
 
 export const signup = async (req: Request, res: Response) => {
-  console.log("signup", req.body);
   assert(req.body, UserCreationData);
   try {
     const user = await prisma.user.create({
       data: {
-        username: req.body.username,
+        fullName: req.body.fullName,
         email: req.body.email,
         passwordHash: await hash(req.body.password, saltRounds),
       },
@@ -36,10 +35,9 @@ export const signup = async (req: Request, res: Response) => {
 
 export const signin = async (req: Request, res: Response) => {
   assert(req.body, UserConnectData);
-  console.log("signin", req.body);
   const user = await prisma.user.findUnique({
     where: {
-      username: req.body.username,
+      email: req.body.email,
     },
   });
 
@@ -58,7 +56,6 @@ export const signin = async (req: Request, res: Response) => {
 };
 
 export const getConnectedUser = async (req: AuthRequest, res: Response) => {
-  console.log("getConnectedUser", req.auth);
   if (req.auth) {
     const { passwordHash, ...userWithoutPassword } = req.auth;
     res.json(userWithoutPassword);

@@ -10,7 +10,6 @@ import {
 } from "../validation/budget";
 
 export const createBudget = async (req: AuthRequest, res: Response) => {
-  console.log("createBudget", req.body, req.auth);
   assert(req.body, BudgetCreationData);
   if (req.auth) {
     let budget;
@@ -19,7 +18,6 @@ export const createBudget = async (req: AuthRequest, res: Response) => {
         data: {
           month: req.body.month,
           year: req.body.year,
-          stableIncome: req.body.stableIncome,
           userId: req.auth.id,
         },
       });
@@ -33,7 +31,7 @@ export const createBudget = async (req: AuthRequest, res: Response) => {
       }
       throw error;
     }
-    res.json({ ...budget, totalBalance: budget.stableIncome });
+    res.json({ ...budget, totalBalance: 0 });
     res.status(201);
   } else {
     throw new NotFoundError("User not found");
@@ -41,7 +39,6 @@ export const createBudget = async (req: AuthRequest, res: Response) => {
 };
 
 export const getCurrentBudget = async (req: AuthRequest, res: Response) => {
-  console.log("getCurrentBudget", req.auth);
   if (req.auth) {
     const budget = await prisma.budget.findFirst({
       where: {
@@ -63,16 +60,14 @@ export const getCurrentBudget = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    const totalBalance =
-      budget.stableIncome +
-      transactions.reduce((acc, transaction) => {
-        return (
-          acc +
-          (transaction.type === "income"
-            ? transaction.amount
-            : -transaction.amount)
-        );
-      }, 0);
+    const totalBalance = transactions.reduce((acc, transaction) => {
+      return (
+        acc +
+        (transaction.type === "income"
+          ? transaction.amount
+          : -transaction.amount)
+      );
+    }, 0);
 
     res.json({ ...budget, totalBalance });
   } else {
@@ -81,8 +76,6 @@ export const getCurrentBudget = async (req: AuthRequest, res: Response) => {
 };
 
 export const getBudgetByDate = async (req: AuthRequest, res: Response) => {
-  console.log("getBudgetByDate", req.auth);
-
   assert(req.query, BudgetByDateQueryParamsData);
 
   if (req.auth) {

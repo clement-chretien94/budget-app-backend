@@ -7,11 +7,10 @@ import { assert } from "superstruct";
 import {
   TransactionCreationData,
   GetTransactionsQueryParamsData,
+  GetTransactionsByBudgetQueryParamsData,
 } from "../validation/transaction";
 
 export const createTransaction = async (req: AuthRequest, res: Response) => {
-  console.log("createTransaction", req.body, req.auth);
-
   if (typeof req.body.date === "string") {
     req.body.date = new Date(req.body.date);
   }
@@ -51,6 +50,13 @@ export const createTransaction = async (req: AuthRequest, res: Response) => {
         date: req.body.date,
         budget: { connect: { id: budgetId } },
       };
+
+      if (!req.body.categoryId) {
+        transaction = await prisma.transaction.create({ data });
+        res.json(transaction);
+        res.status(201);
+        return;
+      }
 
       const budgetOnCategory = await prisma.budgetOnCategory.findUnique({
         where: {
@@ -103,8 +109,7 @@ export const getTransactionsByBudget = async (
   req: AuthRequest,
   res: Response
 ) => {
-  console.log("getTransactionsByBudget", req.auth);
-  assert(req.query, GetTransactionsQueryParamsData);
+  assert(req.query, GetTransactionsByBudgetQueryParamsData);
   if (req.auth) {
     const transactions = await prisma.transaction.findMany({
       take: Number(req.query.take) || undefined,
@@ -153,11 +158,12 @@ export const getTransactionsByBudget = async (
 };
 
 export const getTransactions = async (req: AuthRequest, res: Response) => {
-  console.log("getTransactions", req.auth);
   assert(req.query, GetTransactionsQueryParamsData);
   if (req.auth) {
     const transactions = await prisma.transaction.findMany({
-      take: Number(req.query.take) || undefined,
+      where: {
+        type: req.query.type as "expense" | "income" | undefined,
+      },
       include: {
         budgetCategory: {
           select: {

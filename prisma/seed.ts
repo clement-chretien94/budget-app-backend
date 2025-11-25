@@ -8,7 +8,7 @@ async function main() {
   for (let i = 0; i < 2; i++) {
     const user = await prisma.user.create({
       data: {
-        username: faker.person.fullName(),
+        fullName: faker.person.fullName(),
         email: faker.internet.email(),
         passwordHash: faker.internet.password(),
       },
@@ -19,7 +19,6 @@ async function main() {
       data: {
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
-        stableIncome: faker.number.int({ min: 1000, max: 5000 }),
         userId: user.id,
       },
     });

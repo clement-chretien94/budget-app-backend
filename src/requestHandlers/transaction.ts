@@ -163,6 +163,7 @@ export const getTransactions = async (req: AuthRequest, res: Response) => {
     const transactions = await prisma.transaction.findMany({
       where: {
         type: req.query.type as "expense" | "income" | undefined,
+        budget: { userId: req.auth.id },
       },
       include: {
         budgetCategory: {

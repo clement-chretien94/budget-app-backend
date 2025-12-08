@@ -18,6 +18,7 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
         data: {
           name: req.body.name,
           emoji: req.body.emoji,
+          user: { connect: { id: req.auth.id } },
         },
       });
     } catch (error) {
@@ -85,7 +86,9 @@ export const getCategoriesByBudget = async (
 
 export const getCategories = async (req: AuthRequest, res: Response) => {
   if (req.auth) {
-    const categories = await prisma.category.findMany();
+    const categories = await prisma.category.findMany({
+      where: { userId: req.auth.id },
+    });
 
     if (!categories) {
       res.json(null);
